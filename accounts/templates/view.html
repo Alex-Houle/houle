@@ -1,0 +1,26 @@
+{% include 'header.html' %}
+
+<h1>View / Update User</h1>
+
+{% if msg %}
+<p style="color: green;">{{ msg }}</p>
+{% endif %}
+
+<form method="POST" action="{{ url_for('accounts.view', username=user.username) }}">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" value="{{ user.username }}" readonly><br><br>
+
+    <label for="password">Password:</label>
+    <input type="text" id="paso sword" name="password" value="{{ user.password }}"><br><br>
+
+    <label for="admin">Admin:</label>
+    <input type="checkbox" id="admin" name="admin" {% if user.admin %}checked{% endif %}><br><br>
+
+    <input type="submit" value="Update User">
+</form>
+
+
+<form method="POST" action="{{ url_for('accounts.delete', username=user.username) }}">
+    <input type="submit" value="Delete User" style="color: red;">
+</form>
+

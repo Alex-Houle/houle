@@ -1,0 +1,6 @@
+{
+  "DATABASE_URL": "mongodb+srv://student123:student123@cluster0.n5ntvo6.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
+  "_DATABASE_URL": "mongodb://localhost:27017",
+  "DATABASE_DB": "user_database",
+  "DATABASE_COL": "users_test"
+}
