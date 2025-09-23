@@ -43,7 +43,6 @@ class UserAPI:
     
     def read(self, query: dict) -> dict:
         q = UserQuery(**query)
-        # Use exclude_none=True to only query with the provided fields
         us = self.um.read(q.model_dump(exclude_none=True))
         for u in us:
             u['id'] = str(u.pop('_id'))

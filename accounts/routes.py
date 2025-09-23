@@ -1,4 +1,4 @@
-from flask import Blueprint, redirect, render_template, request, url_for, render_template_string, flash, current_app
+from flask import Blueprint, redirect, render_template, request, url_for, render_template_string, flash, current_app, abort
 from flask_login import login_user, logout_user, login_required, current_user
 from .data.user_models import UserAuth, UserLogin
 from .data.user_api import UserAPI
@@ -76,8 +76,7 @@ def create():
 @login_required
 def users():
     if not current_user.admin:
-        flash("You do not have permission to access this page.")
-        return redirect(url_for('hello'))
+        abort(403)
 
     # Use current_app.um for API calls
     users_dict = current_app.um.read_all()  # returns list or dict
@@ -95,8 +94,7 @@ def users():
 def view(username):
     # Restrict access based on current user's role or username
     if not (current_user.admin or current_user.username == username):
-        flash("You do not have permission to access this user's profile.")
-        return redirect(url_for('hello'))
+        abort(403)
 
     # Use current_app.um for API calls
     users_dict = current_app.um.read({"username": username})
@@ -112,26 +110,28 @@ def view(username):
         return render_template("view.html", user=user, msg=msg)
 
     elif request.method == "POST":
-        updated_data = {
-            "password": request.form.get("password"),
-            "admin": request.form.get("admin") == "on"
-        }
+        updated_data = {}
+        password = request.form.get("password")
+        if password:
+            updated_data["password"] = password
+
+        if current_user.admin:
+            is_admin = request.form.get("admin") == "on"
+            if user.get('admin') != is_admin:
+                updated_data["admin"] = is_admin
         
-        # Only allow admins to change the admin status
-        if not current_user.admin and user.get('admin', False) != updated_data.get('admin', False):
-            flash("You do not have permission to change admin status.")
-            return redirect(url_for("accounts.view", username=username))
-
         user_id = user.get('id') or user.get('_id')
-        result = current_app.um.update(user_id, updated_data)
-
-        if result:
-            return redirect(url_for("accounts.view", username=username, msg="User updated successfully"))
-        else:
-            return render_template_string("""
-                {% include 'header.html' %}
-                <h1>Error updating user</h1>
-            """), 400
+        if updated_data:
+            result = current_app.um.update(user_id, updated_data)
+            if result:
+                users_dict = current_app.um.read({"username": username})
+                user = users_dict.get('users', [])[0]
+                return redirect(url_for("accounts.view", username=user['username'], msg="User updated successfully"))
+            else:
+                return render_template_string("""
+                    {% include 'header.html' %}
+                    <h1>Error updating user</h1>
+                """), 400
 
 
 # Delete a single user
@@ -139,8 +139,7 @@ def view(username):
 @login_required
 def delete(username):
     if not current_user.admin:
-        flash("You do not have permission to delete this user.")
-        return redirect(url_for('accounts.users'))
+        abort(403)
 
     # Use current_app.um for API calls
     users_dict = current_app.um.read({"username": username})
@@ -161,12 +160,4 @@ def delete(username):
     return redirect(url_for("accounts.users", msg=f"User '{username}' deleted!"))
 
 
-@accounts.route('/users/delete/all', methods=['POST'])
-@login_required
-def delete_all():
-    if not current_user.admin:
-        flash("You do not have permission to delete all users.")
-        return redirect(url_for('accounts.users'))
-
-    n = current_app.um.delete_all()
-    return f"deleted {n} users"
+@
