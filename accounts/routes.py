@@ -4,8 +4,6 @@ from .data.user_models import UserAuth, UserLogin
 from .data.user_api import UserAPI
 
 accounts = Blueprint("accounts", __name__, template_folder="templates")
-# The old way to initialize the API. Remove this and use current_app.um instead.
-# um = UserAPI()
 
 # Login route
 @accounts.route('/login', methods=['GET', 'POST'])
@@ -25,7 +23,7 @@ def login():
         user = UserLogin(user_data['id'], user_data['username'], user_data.get('admin', False))
         login_user(user)
         flash('Logged in successfully!')
-        return redirect(url_for('index'))
+        return redirect(url_for('hello'))
     else:
         flash('Invalid username or password.')
         return redirect(url_for('accounts.login'))
@@ -36,7 +34,7 @@ def login():
 def logout():
     logout_user()
     flash('You have been logged out.')
-    return redirect(url_for('index'))
+    return redirect(url_for('hello'))
 
 # Create user route
 @accounts.route('/users/create', methods=['POST', 'GET'])
@@ -61,6 +59,12 @@ def create():
                 <h1>Error: {{ message }}</h1>
             """, message=str(e)), 400
 
+        # After creating the user, log them in
+        user_data = current_app.um.read_by_id(uid)
+        if user_data:
+            user = UserLogin(user_data['id'], user_data['username'], user_data.get('admin', False))
+            login_user(user)
+
         flash("User created successfully!")
         return redirect(url_for('accounts.view', username=u['username']))
 
@@ -73,7 +77,7 @@ def create():
 def users():
     if not current_user.admin:
         flash("You do not have permission to access this page.")
-        return redirect(url_for('index'))
+        return redirect(url_for('hello'))
 
     # Use current_app.um for API calls
     users_dict = current_app.um.read_all()  # returns list or dict
@@ -92,7 +96,7 @@ def view(username):
     # Restrict access based on current user's role or username
     if not (current_user.admin or current_user.username == username):
         flash("You do not have permission to access this user's profile.")
-        return redirect(url_for('index'))
+        return redirect(url_for('hello'))
 
     # Use current_app.um for API calls
     users_dict = current_app.um.read({"username": username})
