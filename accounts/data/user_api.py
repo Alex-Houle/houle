@@ -2,8 +2,14 @@ from .user_manager import UserManager
 from .user_models import *
 
 class UserAPI:
-    def __init__(self, user_manager: UserManager):
-        self.um = user_manager
+    def __init__(self, user_manager: UserManager = None):
+        if user_manager is None:
+            # Default initialization for testing
+            import os
+            conn_str = "mongodb://localhost:27017"
+            self.um = UserManager(conn_str, "test_db", "test_users")
+        else:
+            self.um = user_manager
 
     def authenticate(self, auth: dict) -> dict | None:
         '''

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, json, current_app
+from flask import Flask, render_template, json, current_app, abort
 from flask_login import LoginManager, current_user, login_required
 from accounts.routes import accounts
 from accounts.data import user_manager, user_api
@@ -22,6 +22,11 @@ app.um = user_api.UserAPI(umngr)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
+
+# Custom unauthorized handler to return 401 instead of redirect
+@login_manager.unauthorized_handler
+def unauthorized():
+    abort(401)
 
 @login_manager.user_loader
 def load_user(user_id):

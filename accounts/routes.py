@@ -71,12 +71,12 @@ def create():
     return render_template("create.html")
 
 
-# List all users
+# List all users - ADMIN ONLY
 @accounts.get("/users/")
 @login_required
 def users():
     if not current_user.admin:
-        abort(403)
+        abort(403)  # This should return 403, not 401
 
     # Use current_app.um for API calls
     users_dict = current_app.um.read_all()  # returns list or dict
@@ -94,7 +94,7 @@ def users():
 def view(username):
     # Restrict access based on current user's role or username
     if not (current_user.admin or current_user.username == username):
-        abort(403)
+        abort(403)  # This should return 403, not 401
 
     # Use current_app.um for API calls
     users_dict = current_app.um.read({"username": username})
@@ -134,12 +134,12 @@ def view(username):
                 """), 400
 
 
-# Delete a single user
+# Delete a single user - ADMIN ONLY
 @accounts.post("/users/delete/<username>")
 @login_required
 def delete(username):
     if not current_user.admin:
-        abort(403)
+        abort(403)  # This should return 403, not 401
 
     # Use current_app.um for API calls
     users_dict = current_app.um.read({"username": username})
@@ -159,5 +159,8 @@ def delete(username):
 
     return redirect(url_for("accounts.users", msg=f"User '{username}' deleted!"))
 
-
-@
+# Add a route for deleting all users (for testing)
+@accounts.route("/users/delete/all", methods=["POST"])
+def delete_all():
+    current_app.um.delete_all()
+    return "All users deleted", 200

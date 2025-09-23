@@ -11,7 +11,7 @@
     <input type="text" id="username" name="username" value="{{ user.username }}" readonly><br><br>
 
     <label for="password">Password:</label>
-    <input type="text" id="paso sword" name="password" value="{{ user.password }}"><br><br>
+    <input type="text" id="password" name="password" value="{{ user.password }}"><br><br>
 
     <label for="admin">Admin:</label>
     <input type="checkbox" id="admin" name="admin" {% if user.admin %}checked{% endif %}><br><br>
@@ -19,8 +19,6 @@
     <input type="submit" value="Update User">
 </form>
 
-
 <form method="POST" action="{{ url_for('accounts.delete', username=user.username) }}">
     <input type="submit" value="Delete User" style="color: red;">
 </form>
-
